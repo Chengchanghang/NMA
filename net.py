@@ -20,6 +20,7 @@ te_data = zip(test_x,test_y)
 
 eta = 0.3
 epcoes = 30
+sizes=10
 
 def sigmoid(z):
     return 1.0 / ( 1.0 + np.exp(-z))
@@ -37,7 +38,7 @@ weights = [np.random.randn(y,x) for x,y in zip(network[:-1],network[1:])]
 nabla_b = [np.zeros(b.shape) for b in biases]
 nabla_w = [np.zeros(w.shape) for w in weights]
 
-#mnist
+#training_data
 x_labels = []
 y_labels = []
 n = len(tr_data)
@@ -46,9 +47,9 @@ for j in xrange(epcoes):
     mnist_batchs =[tr_data[k : k + sizes] for k in xrange(0,n,sizes)] 
     for mnist_batch in mnist_batchs:
         for x, y in mnist_batch:
-            activation = x
-            y = y
-            activations = [x] 
+            activation = x.reshape(1201,1)
+            y = y.reshape(51,1)
+            activations = [activation] 
             zs = []
             for b, w in zip(biases, weights):
                 z = np.dot(w, activation)+b
@@ -56,6 +57,7 @@ for j in xrange(epcoes):
                 activation = sigmoid(z)
                 activations.append(activation)
             delta = cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1]) 
+            
             nabla_b[-1] = delta
             nabla_w[-1] = np.dot(delta, activations[-2].transpose())
             for l in xrange(2,num_layers):
@@ -63,8 +65,24 @@ for j in xrange(epcoes):
                 sp = sigmoid_prime(z)
                 delta = np.dot(weights[-l+1].transpose(), delta) * sp
                 nabla_b[-l] = delta
+
                 nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
             delta_nabla_b, delta_nabla_w = nabla_b,nabla_w
             nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]  
             nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
             weights = [w-(eta)*nw for w, nw in zip(weights, nabla_w)]
+
+#test_data          
+
+x_test,y_test = te_data[1]
+x_test = x_test / 6
+activation = x_test.reshape(1201,1)
+y = y_test.reshape(51,1)
+activations = [activation] 
+zs = []
+for b, w in zip(biases, weights):
+    z = np.dot(w, activation)+b
+    zs.append(z)
+    activation = sigmoid(z)
+    activations.append(activation)
+y_ = activations[-1] * 6
